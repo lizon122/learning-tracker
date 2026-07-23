@@ -38,7 +38,7 @@ LPA.Dashboard = (function() {
     html += '</div>';
 
     // Two-column layout: rings + heatmap left, todo right
-    html += '<div style="display:grid;grid-template-columns:1fr 320px;gap:20px;" id="dash-grid">';
+    html += '<div style="display:grid;grid-template-columns:1fr 320px;gap:20px;" id="dash-grid" class="dash-grid">';
 
     // Left column
     html += '<div>';
