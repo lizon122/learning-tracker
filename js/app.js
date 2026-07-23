@@ -53,7 +53,7 @@ window.LPA = window.LPA || {};
         if (e.action === 'data:changed') applyTheme();
       });
 
-      console.log('📚 学习进度分析助手已就绪');
+      console.log('📚 Commiada-L ready');
     } catch(e) {
       console.error('boot fatal error:', e);
     }

@@ -50,7 +50,7 @@ LPA.Settings = (function() {
     // About
     html += '<div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:24px;box-shadow:var(--shadow-sm)">';
     html += '<h3>ℹ️ 关于</h3>';
-    html += '<p style="font-size:.85rem;color:var(--color-text-muted);">学习进度分析助手 v1.0 · Phase 3<br>通信工程大学生专属学习追踪工具<br>数据存储于浏览器本地，不会上传到任何服务器。</p>';
+    html += '<p style="font-size:.85rem;color:var(--color-text-muted);">Commiada-L v1.0<br>通信工程大学生专属学习追踪工具<br>数据存储于浏览器本地，不会上传到任何服务器。<br><br>by UESTC SICE Lizon<br>电子科技大学 信息与通信工程学院</p>';
     html += '</div>';
 
     container.innerHTML = html;
