@@ -42,8 +42,7 @@ window.__GITHUB_USER__ = null;
     _token = loadToken();
     if (!_token) return Promise.reject("no token");
     return fetch(API + "/gists?per_page=100", { headers: _headers() })
-      .then(function(r) { return r.json(); })
-      .then(function(gists) {
+      .then(function(r) { if (!r.ok) throw new Error("GitHub API 返回 " + r.status + "，Token 可能无 gist 权限"); return r.json(); }).then(function(gists) {
         for (var i = 0; i < gists.length; i++) {
           if (gists[i].description === GIST_DESC) {
             _gistId = gists[i].id;
