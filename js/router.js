@@ -1,4 +1,4 @@
-// router.js — Hash-based SPA Router
+﻿// router.js — Hash-based SPA Router
 window.LPA = window.LPA || {};
 
 LPA.Router = (function() {
@@ -9,49 +9,62 @@ LPA.Router = (function() {
 
   function init(routes) {
     _routes = routes;
-    _container = document.getElementById('app-main');
+    _container = document.getElementById("app-main");
     if (!_container) {
-      console.error('Router: #app-main not found');
+      console.error("Router: #app-main not found");
       return;
     }
-    window.addEventListener('hashchange', _handleRoute);
+    window.addEventListener("hashchange", _handleRoute);
     _handleRoute();
   }
 
   function _handleRoute() {
-    var hash = location.hash.replace('#', '') || 'dashboard';
+    var hash = location.hash.replace("#", "");
+    
+    // Default: always go to login first (auth page handles everything internally)
+    if (!hash) {
+      hash = "login";
+    }
+
+    // Auth guard: protect non-login routes when Bmob is available
+    if (hash !== "login" && window.__BMOB_AVAILABLE__) {
+      try {
+        if (!Bmob.User.current()) {
+          location.hash = "#login";
+          return;
+        }
+      } catch (e) {
+        console.warn("Bmob auth check failed:", e);
+      }
+    }
+
     var config = _routes[hash];
     if (!config) {
-      location.hash = '#dashboard';
+      location.hash = "#login";
       return;
     }
 
-    // Destroy previous view
-    if (_currentView && typeof _currentView.destroy === 'function') {
+    if (_currentView && typeof _currentView.destroy === "function") {
       _currentView.destroy();
     }
 
-    // Clear container
-    _container.innerHTML = '';
-
-    // Render new view
+    _container.innerHTML = "";
     config.render(_container);
     _currentView = config;
     _currentRoute = hash;
-    document.title = config.title + ' — 学习进度分析助手';
+    document.title = config.title + " — Commiada-L";
 
-    // Update sidebar active state
-    var navItems = document.querySelectorAll('.nav-item');
+    var navItems = document.querySelectorAll(".nav-item");
     navItems.forEach(function(item) {
-      item.classList.remove('active');
-      if (item.getAttribute('data-route') === hash) {
-        item.classList.add('active');
+      item.classList.remove("active");
+      if (item.getAttribute("data-route") === hash) {
+        item.classList.add("active");
       }
     });
   }
 
   function navigate(hash) {
-    location.hash = '#' + hash;
+    location.hash = "#" + hash;
   }
 
   function getCurrentRoute() {

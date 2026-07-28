@@ -24,6 +24,7 @@ LPA.Dashboard = (function() {
 
   function _build() {
     if (!_container) return;
+    try {
     var stats = LPA.Store.getStats();
     var U = LPA.Utils;
 
@@ -74,6 +75,10 @@ LPA.Dashboard = (function() {
 
     // Bind todo events
     _bindTodoEvents();
+    } catch(e) {
+      console.error('dashboard _build error:', e);
+      _container.innerHTML = '<div style="padding:40px;text-align:center"><h2>⚠️ 渲染错误</h2><p style="color:#ef4444;">' + e.message + '</p><button onclick="localStorage.clear();location.reload()" style="background:#ef4444;color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;margin-top:12px;">清除数据并重新加载</button></div>';
+    }
   }
 
   function _refresh() {

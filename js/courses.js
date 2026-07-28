@@ -27,6 +27,7 @@ LPA.Courses = (function() {
 
   function _build() {
     if (!_container) return;
+    try {
     var courses = LPA.Store.getCourses();
     var U = LPA.Utils;
     var html = '';
@@ -72,6 +73,7 @@ LPA.Courses = (function() {
     // Chapter items
     document.querySelectorAll('.chapter-item').forEach(function(el) {
       el.addEventListener('click', function() {
+        try {
         var courseId = el.getAttribute('data-course-id');
         var chapterId = el.getAttribute('data-chapter-id');
         var course = LPA.Store.getCourse(courseId);
@@ -81,8 +83,13 @@ LPA.Courses = (function() {
         var next = ch.status === 'not_started' ? 'in_progress' :
                    ch.status === 'in_progress' ? 'completed' : 'not_started';
         LPA.Store.updateChapterStatus(courseId, chapterId, next);
+        } catch(e) { console.error('chapter click error:', e); }
       });
     });
+    } catch(e) {
+      console.error('courses _build error:', e);
+      _container.innerHTML = '<div style="padding:40px;text-align:center"><h2>⚠️ 渲染错误</h2><p>' + e.message + '</p><button onclick="localStorage.clear();location.reload()" style="background:#ef4444;color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;margin-top:12px;">清除数据并重新加载</button></div>';
+    }
   }
 
   function _buildCourseCard(c) {

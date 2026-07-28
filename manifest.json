@@ -1,0 +1,23 @@
+﻿{
+  "name": "Commiada-L — 学习进度分析助手",
+  "short_name": "Commiada-L",
+  "description": "通信工程大学生学习进度追踪与番茄钟计时",
+  "start_url": "/learning-tracker/",
+  "scope": "/learning-tracker/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,7 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Commiada-L">
+<link rel="apple-touch-icon" href="icon-192.png">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Commiada-L</title>
 <link rel="stylesheet" href="css/style.css">
@@ -37,6 +44,9 @@
   </main>
 </div>
 
+<div id="auth-container"></div>
+<script src="js/github-auth.js"></script>
+<script src="js/auth.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/store.js"></script>
 <script src="js/router.js"></script>
@@ -56,6 +66,17 @@ setTimeout(function() {
     main.innerHTML = '<div style="padding:40px;text-align:center;"><h2>⚠️ 启动失败</h2><p style="color:#64748b;margin:12px 0;">脚本加载可能超时，请检查控制台 (F12) 查看错误</p><button onclick="localStorage.clear();location.reload();" style="margin:12px;background:#ef4444;color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:1rem;">🔄 清除数据并重新加载</button><button onclick="location.reload();" style="margin:12px;background:var(--color-primary);color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:1rem;">🔄 直接重新加载</button></div>';
   }
 }, 3000);
+</script>
+
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js").then(function() {
+    console.log("SW registered");
+  }).catch(function(e) {
+    console.log("SW failed:", e);
+  });
+}
 </script>
 
 </body>
