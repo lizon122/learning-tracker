@@ -169,7 +169,7 @@ window.__GITHUB_USER__ = null;
   };
 
   window.__GITHUB_READY__ = init().then(function(result) {
-    if (result === "need_token") { console.log("No token set"); return false; }
+    if (result === "need_token") { console.log("No token set"); return "need_token"; }
     console.log("GitHub sync: " + (result ? "logged in as " + _currentUser : "not logged in"));
     return result;
   });
