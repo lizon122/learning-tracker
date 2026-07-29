@@ -1,4 +1,4 @@
-﻿// auth.js — Login / Register page
+﻿// auth.js — Login / Register page (no token needed)
 window.LPA = window.LPA || {};
 
 LPA.Auth = (function() {
@@ -17,48 +17,13 @@ LPA.Auth = (function() {
       '<div style="margin-top:12px;width:40px;height:40px;border:3px solid var(--color-border);border-top-color:var(--color-primary);border-radius:50%;animation:spin 0.8s linear infinite;margin-left:auto;margin-right:auto;"></div>' +
       "</div></div>";
 
-    window.__GITHUB_READY__.then(function(result) {
-      if (result === "need_token") {
-        _showTokenSetup();
-      } else if (result && GitHubSync.isAuthed()) {
+    window.__GITHUB_READY__.then(function(ok) {
+      if (ok && GitHubSync.isAuthed()) {
         location.hash = "#dashboard";
       } else {
         _build();
       }
     });
-  }
-
-  function _showTokenSetup() {
-    _container.innerHTML =
-      '<div class="auth-page"><div class="auth-card" style="text-align:center">' +
-      '<div class="auth-logo">Commiada<span>-L</span></div>' +
-      '<p class="auth-sub" style="font-size:.9rem;">首次使用 · 绑定 GitHub</p>' +
-      '<p style="color:#64748b;font-size:.75rem;margin:16px 8px 4px 8px;">需要一个 GitHub Token 来存储学习数据（仅需设置一次）</p>' +
-      '<p style="color:#94a3b8;font-size:.65rem;margin:0 8px 12px 8px;">数据存在你的私有 Gist，完全由你控制</p>' +
-      '<input type="password" id="setup-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="width:100%;padding:10px 14px;border:1px solid var(--color-border);border-radius:8px;font-family:monospace;font-size:.8rem;box-sizing:border-box;">' +
-      '<p class="auth-error" id="auth-error" style="display:none"></p>' +
-      '<button id="btn-setup" style="margin-top:8px;width:100%;background:var(--color-primary);color:#fff;border:none;padding:12px;border-radius:8px;cursor:pointer;font-size:1rem;">绑定并继续</button>' +
-      '<p style="font-size:.7rem;color:#94a3b8;margin-top:10px;">' +
-      '<a href="https://github.com/settings/tokens" target="_blank" style="color:var(--color-primary);">获取 Token</a> — 只勾选 <b>gist</b> 权限，其他都不选</p>' +
-      "</div></div>";
-
-    document.getElementById("btn-setup").addEventListener("click", function() {
-      var token = document.getElementById("setup-token").value.trim();
-      if (!token) { _showError("请输入 Token"); return; }
-      var btn = document.getElementById("btn-setup");
-      btn.disabled = true; btn.textContent = "验证中...";
-      fetch("https://api.github.com/user", { headers: { "Authorization": "token " + token, "Accept": "application/vnd.github.v3+json" } })
-        .then(function(r) { if (!r.ok) throw new Error("bad"); return r.json(); })
-        .then(function() {
-          GitHubSync.setToken(token);
-          window.__GITHUB_READY__ = GitHubSync.init().then(function() { return !!GitHubSync.getToken(); });
-          _build();
-        })
-        .catch(function() { _showError("Token 无效，请检查"); btn.disabled = false; btn.textContent = "绑定并继续"; });
-    });
-
-    var inp = document.getElementById("setup-token");
-    if (inp) inp.addEventListener("keydown", function(e) { if (e.key === "Enter") document.getElementById("btn-setup").click(); });
   }
 
   function destroy() { _container = null; }

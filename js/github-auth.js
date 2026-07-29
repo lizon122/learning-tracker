@@ -1,17 +1,25 @@
-﻿// github-auth.js — GitHub Gist backend with user auth
+﻿// github-auth.js — GitHub Gist backend (token on server via Vercel proxy)
 window.__GITHUB_READY__ = Promise.resolve(false);
 window.__GITHUB_AUTH__ = false;
 window.__GITHUB_USER__ = null;
 
 (function() {
-  var API = "https://api.github.com";
+  var API_PROXY = "/api/github-proxy";
   var GIST_DESC = "commiada-l-data";
-  var _token = null;
   var _gistId = null;
   var _currentUser = null;
 
-  function _headers() {
-    return { "Authorization": "token " + _token, "Accept": "application/vnd.github.v3+json" };
+  function _call(path, method, body) {
+    return fetch(API_PROXY, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: path, method: method, body: body })
+    }).then(function(r) {
+      if (!r.ok) {
+        return r.json().then(function(d) { throw new Error(d.error || d.message || "HTTP " + r.status); });
+      }
+      return r.json();
+    });
   }
 
   function _hash(str) {
@@ -21,69 +29,40 @@ window.__GITHUB_USER__ = null;
     });
   }
 
-  function getToken() { return _token; }
-
-  function setToken(token) {
-    _token = token;
-    localStorage.setItem("gh_master_token", token);
-  }
-
-  function hasToken() {
-    return !!(_token || localStorage.getItem("gh_master_token"));
-  }
-
-  function loadToken() {
-    if (_token) return _token;
-    _token = localStorage.getItem("gh_master_token");
-    return _token;
-  }
-
   function ensureGist() {
-    _token = loadToken();
-    if (!_token) return Promise.reject("no token");
-    return fetch(API + "/gists?per_page=100", { headers: _headers() })
-      .then(function(r) { if (!r.ok) throw new Error("GitHub API 返回 " + r.status + "，Token 可能无 gist 权限"); return r.json(); }).then(function(gists) {
-        for (var i = 0; i < gists.length; i++) {
-          if (gists[i].description === GIST_DESC) {
-            _gistId = gists[i].id;
-            localStorage.setItem("gh_gist_id", _gistId);
-            return _gistId;
-          }
-        }
-        return fetch(API + "/gists", {
-          method: "POST",
-          headers: Object.assign({}, _headers(), { "Content-Type": "application/json" }),
-          body: JSON.stringify({
-            description: GIST_DESC, public: false,
-            files: { "data.json": { content: JSON.stringify({ users: {} }) } }
-          })
-        }).then(function(r) { return r.json(); })
-        .then(function(g) {
-          _gistId = g.id;
+    return _call("/gists?per_page=100", "GET").then(function(gists) {
+      for (var i = 0; i < gists.length; i++) {
+        if (gists[i].description === GIST_DESC) {
+          _gistId = gists[i].id;
           localStorage.setItem("gh_gist_id", _gistId);
           return _gistId;
-        });
+        }
+      }
+      return _call("/gists", "POST", {
+        description: GIST_DESC, public: false,
+        files: { "data.json": { content: JSON.stringify({ users: {} }) } }
+      }).then(function(g) {
+        _gistId = g.id;
+        localStorage.setItem("gh_gist_id", _gistId);
+        return _gistId;
       });
+    });
   }
 
   function readAllData() {
     if (!_gistId) return Promise.resolve(null);
-    return fetch(API + "/gists/" + _gistId, { headers: _headers() })
-      .then(function(r) { return r.json(); })
-      .then(function(g) {
-        var f = g.files && g.files["data.json"];
-        if (f && f.content) { try { return JSON.parse(f.content); } catch(e) {} }
-        return null;
-      });
+    return _call("/gists/" + _gistId, "GET").then(function(g) {
+      var f = g.files && g.files["data.json"];
+      if (f && f.content) { try { return JSON.parse(f.content); } catch(e) {} }
+      return null;
+    });
   }
 
   function writeAllData(data) {
     if (!_gistId) return Promise.reject("no gist");
-    return fetch(API + "/gists/" + _gistId, {
-      method: "PATCH",
-      headers: Object.assign({}, _headers(), { "Content-Type": "application/json" }),
-      body: JSON.stringify({ files: { "data.json": { content: JSON.stringify(data) } } })
-    }).then(function(r) { return r.json(); });
+    return _call("/gists/" + _gistId, "PATCH", {
+      files: { "data.json": { content: JSON.stringify(data) } }
+    });
   }
 
   function register(username, password) {
@@ -148,29 +127,25 @@ window.__GITHUB_USER__ = null;
 
   function init() {
     _gistId = localStorage.getItem("gh_gist_id");
-    _token = localStorage.getItem("gh_master_token");
     var savedUser = localStorage.getItem("gh_user");
-    if (_token && savedUser) {
+    if (savedUser) {
       _currentUser = savedUser;
       window.__GITHUB_AUTH__ = savedUser;
       window.__GITHUB_USER__ = savedUser;
-      return Promise.resolve(true);
+      // Quick verify connection
+      return _call("/user", "GET").then(function() { return true; }).catch(function() { return true; });
     }
-    if (_token) return Promise.resolve(false);
-    return Promise.resolve("need_token");
+    return Promise.resolve(false);
   }
 
   window.GitHubSync = {
-    init: init, getToken: getToken, setToken: setToken, hasToken: hasToken,
-    ensureGist: ensureGist, register: register, login: login,
+    init: init, register: register, login: login,
     readUserData: readUserData, writeUserData: writeUserData,
-    logout: logout, isAuthed: isAuthed, currentUser: currentUser,
-    readAllData: readAllData
+    logout: logout, isAuthed: isAuthed, currentUser: currentUser
   };
 
-  window.__GITHUB_READY__ = init().then(function(result) {
-    if (result === "need_token") { console.log("No token set"); return "need_token"; }
-    console.log("GitHub sync: " + (result ? "logged in as " + _currentUser : "not logged in"));
-    return result;
+  window.__GITHUB_READY__ = init().then(function(ok) {
+    console.log("GitHub sync: " + (ok ? "logged in as " + _currentUser : "not logged in"));
+    return ok;
   });
 })();
